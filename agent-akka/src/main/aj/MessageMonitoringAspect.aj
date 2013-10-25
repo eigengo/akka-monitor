@@ -8,7 +8,7 @@ public aspect MessageMonitoringAspect {
 
     private static CounterInterface createCounterInterface() throws ClassCastException{
         try {
-            Object o = Class.forName("com.eigengo.monitor.output.statsd.CounterInterfaceImpl").newInstance();
+            Object o = Class.forName("com.eigengo.monitor.output.statsd.StatsdCounterInterface").newInstance();
             return (CounterInterface) o;
         } catch (final ReflectiveOperationException e) {
             return new NullCounterInterface();
