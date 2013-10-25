@@ -1,5 +1,7 @@
 package com.eigengo.monitor.agent.akka;
 
+import com.eigengo.monitor.output.api.CounterInterface;
+
 public class NullCounterInterface implements CounterInterface {
     public void incrementCounter(String s, int i){}
 

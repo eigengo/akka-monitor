@@ -1,5 +1,7 @@
 package com.eigengo.monitor.agent.akka;
 
+import com.eigengo.monitor.output.api.CounterInterface;
+
 public aspect MessageMonitoringAspect {
 
     private static final CounterInterface counterInterface = createCounterInterface();
