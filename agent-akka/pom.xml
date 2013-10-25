@@ -26,14 +26,15 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>aspectj-maven-plugin</artifactId>
-                <!-- Don't know if this works. Idea is to inheret the plugin from parent with configurations... -->
                 <configuration>
-                    <weaveDependencies>
-                        <weaveDependency>
-                            <groupId>com.typesafe.akka</groupId>
-                            <artifactId>akka-actor_${scala.version}</artifactId>
-                        </weaveDependency>
-                    </weaveDependencies>
+                    <aspectDirectory>src/main/aj</aspectDirectory>
+            <!-- The below determines whether we do compile time weaving of akka... If uncommented, then we do-->
+                    <!--<weaveDependencies>-->
+                        <!--<weaveDependency>-->
+                            <!--<groupId>com.typesafe.akka</groupId>-->
+                            <!--<artifactId>akka-actor_${scala.version}</artifactId>-->
+                        <!--</weaveDependency>-->
+                    <!--</weaveDependencies>-->
                 </configuration>
             </plugin>
         </plugins>

@@ -115,7 +115,6 @@ You may, however set the scope of the dependencies that you bring in.
                 <configuration>
                     <showWeaveInfo>true</showWeaveInfo>
                     <complianceLevel>1.7</complianceLevel>
-                    <xmlConfigured>META-INF/aop.xml</xmlConfigured>
                 </configuration>
                 <executions>
                     <execution>
