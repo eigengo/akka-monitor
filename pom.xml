@@ -1,4 +1,5 @@
-<!-- 
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
 
 Parent module
 
@@ -12,3 +13,131 @@ Viz https://github.com/TravelSupermarket/aggregation-core/blob/master/pom.xml
 
 
 -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.eigengo.monitor</groupId>
+    <artifactId>parent</artifactId>
+    <packaging>pom</packaging>
+    <version>0.1-SNAPSHOT</version>
+    <name>Monitor Parent</name>
+    <licenses>
+        <license>
+            <name>BSD-style</name>
+            <url>http://www.opensource.org/licenses/bsd-license.php</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <url>git@github.com:eigengo/monitor.git</url>
+        <connection>scm:git@github.com:eigengo/monitor.git</connection>
+        <developerConnection>scm:git@github.com:eigengo/monitor.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+    <prerequisites>
+        <maven>3.0.3</maven>
+    </prerequisites>
+
+    <!--
+These are the modules that make up the project. The modules will form packages (JARs, WARs and other
+such beasts). Be careful not to have circular dependencies; and be sure to hide as much detail of the
+module's structure as possible (members are public only if absolutely required, ...).
+-->
+    <modules>
+        <module>output-api</module>
+        <!-- List of agent modules -->
+        <module>agent-akka</module>
+        <module>agent-play</module>
+        <module>agent-spray</module>
+        <!-- List of output modules -->
+        <module>output-statsd</module>
+    </modules>
+
+    <properties>
+        <scala.version>2.10</scala.version>
+        <!--<maven.compiler.plugin>3.1</maven.compiler.plugin>-->
+        <!--<maven.source.plugin>2.2.1</maven.source.plugin>-->
+        <!--<maven.checkstyle.plugin>2.10</maven.checkstyle.plugin>-->
+        <aspectj.version>1.7.3</aspectj.version>
+        <aspectj.agent>${user.home}/.m2/repository/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar</aspectj.agent>
+    </properties>
+
+    <repositories>
+        <!-- ... -->
+    </repositories>
+
+    <pluginRepositories>
+        <!-- ... -->
+    </pluginRepositories>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.aspectj</groupId>
+                <artifactId>aspectjweaver</artifactId>
+                <version>${aspectj.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.indeed</groupId>
+                <artifactId>java-dogstatsd-client</artifactId>
+                <version>2.0.7</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.typesafe.akka</groupId>
+                <artifactId>akka-actor_${scala.version}</artifactId>
+                <version>2.2.0</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!--
+This section must *never* specify "raw" dependency, that is, one that is not included in the
+``dependencyManagement`` section above.
+You may, however set the scope of the dependencies that you bring in.
+-->
+    <dependencies>
+        <!--<dependency>-->
+            <!--<groupId>org.aspectj</groupId>-->
+            <!--<artifactId>aspectjweaver</artifactId>-->
+            <!--&lt;!&ndash;<scope>agent-akka</scope>&ndash;&gt;-->
+        <!--</dependency>-->
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <!-- not sure if this one really goes here. We may only want it in the children, I guess? -->
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>aspectj-maven-plugin</artifactId>
+                <version>1.5</version>
+                <configuration>
+                    <showWeaveInfo>true</showWeaveInfo>
+                    <complianceLevel>1.7</complianceLevel>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>       <!-- use this goal to weave all your main classes -->
+                            <goal>test-compile</goal>  <!-- use this goal to weave all your test classes -->
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.aspectj</groupId>
+                        <artifactId>aspectjrt</artifactId>
+                        <version>${aspectj.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.aspectj</groupId>
+                        <artifactId>aspectjtools</artifactId>
+                        <version>${aspectj.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
