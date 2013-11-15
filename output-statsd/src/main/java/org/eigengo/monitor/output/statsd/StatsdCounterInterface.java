@@ -74,23 +74,24 @@ public class StatsdCounterInterface implements CounterInterface {
 
     @Override
     public void incrementCounter(String aspect, String... tags) {
-        this.statsd.incrementCounter(aspect, tags);
+        this.statsd.incrementCounter(aspect, sanitize(tags));
     }
 
     @Override
     public void incrementCounter(String aspect, int delta, String... tags) {
-        this.statsd.count(aspect, delta, tags);
+        this.statsd.count(aspect, delta, sanitize(tags));
     }
 
     @Override
     public void decrementCounter(String aspect, String... tags) {
-        this.statsd.decrementCounter(aspect, tags);
+        this.statsd.decrementCounter(aspect, sanitize(tags));
     }
 
     @Override
     public void recordGaugeValue(String aspect, int value, String... tags) {
-        this.statsd.recordGaugeValue(aspect, value, tags);
-        this.gaugeValues.put(aspect + joinTags(tags), new Metric(aspect, value, tags));
+        final String[] sanitized = sanitize(tags);
+        this.statsd.recordGaugeValue(aspect, value, sanitized);
+        this.gaugeValues.put(aspect + joinTags(sanitized), new Metric(aspect, value, sanitized));
     }
 
     @Override
@@ -104,6 +105,14 @@ public class StatsdCounterInterface implements CounterInterface {
             builder.append(tag).append('|');
         }
         return builder.toString();
+    }
+
+    private static String[] sanitize(String[] tags) {
+        String[] sanitized = new String[tags.length];
+        for (int i = 0; i < tags.length; i++) {
+            sanitized[i] = tags[i].replace(' ', '_').replace(',', '_');
+        }
+        return sanitized;
     }
 
     private final static class Metric {

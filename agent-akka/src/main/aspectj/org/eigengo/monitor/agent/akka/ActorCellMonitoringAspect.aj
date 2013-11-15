@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
+/*
  * Contains advices for monitoring behaviour of an actor; typically imprisoned in an {@code ActorCell}.
  */
 public aspect ActorCellMonitoringAspect extends AbstractMonitoringAspect issingleton() {
@@ -35,9 +35,11 @@ public aspect ActorCellMonitoringAspect extends AbstractMonitoringAspect issingl
     private final Option<String> noActorClazz = Option.empty();
     private final ConcurrentHashMap<Option<String>, AtomicLong> samplingCounters  = new ConcurrentHashMap<Option<String>, AtomicLong>();
     private final ConcurrentHashMap<Option<String>, AtomicInteger> numberOfActors = new ConcurrentHashMap<Option<String>, AtomicInteger>();
+    private enum CountType {
+        Increment, Decrement
+    }
 
-
-    /**
+    /*
      * Constructs this aspect
      */
     public ActorCellMonitoringAspect() {
@@ -55,9 +57,9 @@ public aspect ActorCellMonitoringAspect extends AbstractMonitoringAspect issingl
         this.agentConfiguration = agentConfiguration;
     }
 
-    /**
+    /*
      * decide whether to include this ActorCell in our measurements
-     * */
+     */
     private boolean includeActorPath(final PathAndClass pathAndClass) {
         // do not monitor our own output code
         if (pathAndClass.actorClassName().isDefined()) {
@@ -76,9 +78,9 @@ public aspect ActorCellMonitoringAspect extends AbstractMonitoringAspect issingl
         return "user".equals(userOrSystem);
     }
 
-    /**
+    /*
      * get the sample rate for an actor
-     * */
+     */
     private int getSampleRate(final PathAndClass pathAndClass) {
         return this.agentConfiguration.sampling().getRate(pathAndClass);
     }
@@ -121,15 +123,18 @@ public aspect ActorCellMonitoringAspect extends AbstractMonitoringAspect issingl
         return tags.toArray(new String[tags.size()]);
     }
 
-    /**
+    /*
      * returns the canonical name of the actor type associated with an ActorCell
-     * */
+     */
     private String uncheckedActorNameFrom(final ActorCell actorCell) {
         return uncheckedActorNameFrom(actorCell.props());
     }
 
     /**
-     * returns the canonical name of the actor type associated with a Props instance
+     * Returns the canonical name of the actor type associated with a Props instance
+     *
+     * Returns null if props.actorClass does not have a canonical name (i.e., if
+     * it is a local or anonymous class)
      * */
     private String uncheckedActorNameFrom(final Props props) {
         return props.actorClass().getCanonicalName();
@@ -214,16 +219,7 @@ public aspect ActorCellMonitoringAspect extends AbstractMonitoringAspect issingl
      * @param actor the {@code ActorRef} returned from the call
      */
     after(Props props) returning (ActorRef actor) : Pointcuts.anyActorOf(props) {
-        final String uncheckedClassName = uncheckedActorNameFrom(props);
-        final Option<String> className = Option.apply(uncheckedClassName);
-        if (!includeActorPath(new PathAndClass(actor.path(), className))) return;
-
-        this.numberOfActors.putIfAbsent(className, new AtomicInteger(0));
-        // increment and get the current number of actors of this type (if the value was 0, then this returns 1 -- which is correct)
-        final int currentNumberOfActors = this.numberOfActors.get(className).incrementAndGet();
-
-        // record the current number of actors of this type
-        this.counterInterface.recordGaugeValue("akka.actor.count", currentNumberOfActors, uncheckedClassName);
+        recordActorCount(actor.path(), props, CountType.Increment);
     }
 
     /**
@@ -232,15 +228,39 @@ public aspect ActorCellMonitoringAspect extends AbstractMonitoringAspect issingl
      * @param actorCell the {@code ActorCell} of the actor being stopped
      */
     after(ActorCell actorCell) : Pointcuts.actorCellInternalStop(actorCell) {
-        final String uncheckedClassName = uncheckedActorNameFrom(actorCell);
-        final Option<String> className = Option.apply(uncheckedClassName);
-        if (!includeActorPath(new PathAndClass(actorCell.self().path(), className))) return;
-
-        this.numberOfActors.putIfAbsent(className, new AtomicInteger(0));
-        // decrement and get the current number of actors of this type (if the value was 1, then this returns 0 -- which is correct)
-        final int currentNumberOfActors = this.numberOfActors.get(className).decrementAndGet();
-
-        this.counterInterface.recordGaugeValue("akka.actor.count", currentNumberOfActors, uncheckedClassName);
+        recordActorCount(actorCell.self().path(), actorCell.props(), CountType.Decrement);
     }
 
+    /*
+     * Shares logic between the actorCellInternalStop and anyActorOf advices
+     */
+     private void recordActorCount(ActorPath path, Props props, CountType countType) {
+         final String uncheckedClassName = uncheckedActorNameFrom(props);
+         final Option<String> className = Option.apply(uncheckedClassName);
+         if (!includeActorPath(new PathAndClass(path, className))) return;
+
+         this.numberOfActors.putIfAbsent(className, new AtomicInteger(0));
+         // increment and get the current number of actors of this type (if the value was 0, then this returns 1 -- which is correct)
+         int currentNumberOfActors = 0;
+         switch(countType) {
+             case Increment:
+                 currentNumberOfActors = this.numberOfActors.get(className).incrementAndGet();
+                 break;
+             case Decrement:
+                 currentNumberOfActors = this.numberOfActors.get(className).decrementAndGet();
+                 break;
+         }
+
+         // record the current number of actors of this type
+         String checkedClassName;
+         if (uncheckedClassName == null) checkedClassName = "";
+         else checkedClassName = uncheckedClassName;
+
+         this.counterInterface.recordGaugeValue("akka.actor.count", currentNumberOfActors,
+                 String.format("parent.%s", path.parent().toString()),
+                 String.format("path.%s", path.toString()),
+                 String.format("props.%s", props.clazz().toString()),
+                 String.format("className.%s", checkedClassName));
+
+     }
 }

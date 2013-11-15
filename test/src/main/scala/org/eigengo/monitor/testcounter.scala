@@ -72,6 +72,8 @@ object TestCounter {
     a.copy(value = a.value + b.value)
   }
 
+  val takeLHS : (TestCounter, TestCounter) => TestCounter = (a, _) => a
+
   /**
    * Returns the greater of the two counters
    *

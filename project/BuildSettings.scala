@@ -8,7 +8,7 @@ object BuildSettings {
   lazy val buildSettings = 
     Defaults.defaultSettings ++ 
     sbtunidoc.Plugin.unidocSettings ++ 
-    sbtunidoc.Plugin.genjavadocExtraSettings ++ 
+    sbtunidoc.Plugin.genjavadocExtraSettings ++
     Publish.settings ++ 
     ScalastylePlugin.Settings ++ 
     Seq(
