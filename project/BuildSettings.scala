@@ -8,7 +8,7 @@ object BuildSettings {
   lazy val buildSettings = 
     Defaults.defaultSettings ++ 
     sbtunidoc.Plugin.unidocSettings ++ 
-    sbtunidoc.Plugin.genjavadocExtraSettings ++ 
+    sbtunidoc.Plugin.genjavadocExtraSettings ++
     Publish.settings ++ 
     ScalastylePlugin.Settings ++ 
     Seq(
@@ -45,5 +45,9 @@ object BuildSettings {
     // add the compiled aspects as products
     products in Compile <++= products in Aspectj
   )
+
+  val prePublishing = TaskKey[Unit]("prePublishing") := {
+    println("Hello World")
+  }
 
 }

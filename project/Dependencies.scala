@@ -21,6 +21,10 @@ object Dependencies {
 
     val actor   = "com.typesafe.akka" %% "akka-actor"   % akka_version
     val testkit = "com.typesafe.akka" %% "akka-testkit" % akka_version
+    val actor_2_2_0 = "com.typesafe.akka" % "akka-actor_2.10" % "2.2.0"
+    val testkit_2_2_0 = "com.typesafe.akka" % "akka-actor_2.10" % "2.2.0"
+    val actor_2_2_1 = "com.typesafe.akka" % "akka-actor_2.10" % "2.2.1"
+    val testkit_2_2_1 = "com.typesafe.akka" % "akka-actor_2.10" % "2.2.1"
   }
 
   object spray {

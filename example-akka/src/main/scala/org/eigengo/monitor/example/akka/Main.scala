@@ -18,6 +18,12 @@ package org.eigengo.monitor.example.akka
 import akka.actor.{ActorRef, Props, ActorSystem, Actor}
 import akka.routing.RoundRobinRouter
 
+// This is cheating
+case class ListMaker(args: Any) {
+  def toSomeSeq: Seq[Any] = Seq(args)
+  def toStringSeq: Seq[String] = Seq(args.toString)
+}
+
 // run with -javaagent:$HOME/.m2/repository/org/aspectj/aspectjweaver/1.7.3/aspectjweaver-1.7.3.jar
 // in my case -javaagent:/Users/janmachacek/.m2/repository/org/aspectj/aspectjweaver/1.7.3/aspectjweaver-1.7.3.jar
 object Main extends App {
