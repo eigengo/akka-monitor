@@ -23,6 +23,11 @@ object Dependencies {
     val testkit = "com.typesafe.akka" %% "akka-testkit" % akka_version
   }
 
+  object playd {
+    val core = "org.webjars" %% "webjars-play" % "2.2.0"
+    val bootstrap = "org.webjars" % "bootstrap" % "2.3.1"
+  }
+
   object spray {
     val spray_version = "1.2-RC2"
 
@@ -35,4 +40,6 @@ object Dependencies {
   val dogstatsd_client = "com.indeed"         % "java-dogstatsd-client" % "2.0.7"
 
   val specs2           = "org.specs2"        %% "specs2"                % "2.2.3"
+  val fest_test        = "org.easytesting"    % "fest-assert"          % "1.4"
+  val play_test        = "com.typesafe.play" %% "play-test"             % "2.2.1"
 }

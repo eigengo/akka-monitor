@@ -1,5 +1,6 @@
 import sbt._
 import Keys._
+import play.Project.{fork => playFork}
 
 object MonitorBuild extends Build {
 
@@ -36,7 +37,7 @@ object MonitorBuild extends Build {
       fork in run := true,
       connectInput in run := true,
       mainClass in (Compile, run) := Some("org.eigengo.monitor.example.akka.Main")),
-    aggregate = Seq(agent, output, output_statsd, agent_akka, agent_spray, agent_play, example_akka, docs)) dependsOn (example_akka)
+    aggregate = Seq(agent, output, output_statsd, agent_akka, agent_spray, agent_play, example_akka, example_play, docs)) dependsOn (example_akka, agent_play)
 
 /*
   lazy val macros = module("macros") settings(
@@ -50,7 +51,7 @@ object MonitorBuild extends Build {
       (scalaVersion)(v => Seq(("org.scala-lang" % "scala-compiler" % v), ("org.scala-lang" % "scala-reflect" % v)))))
 */
 
-
+  /* common modules */
   lazy val agent = module("agent") settings (
   	libraryDependencies += typesafe_config
   )
@@ -58,15 +59,17 @@ object MonitorBuild extends Build {
     libraryDependencies += typesafe_config,
     libraryDependencies += specs2 % "test"
   )
+  lazy val test = module("test") dependsOn (output) settings (
+    libraryDependencies += specs2,
+    libraryDependencies += akka.testkit
+    )
+  /* output modules */
   lazy val output_statsd = module("output-statsd") dependsOn (output) settings (
   	libraryDependencies += dogstatsd_client,
     libraryDependencies += akka.actor,
     libraryDependencies += specs2 % "test"
   )
-  lazy val test = module("test") dependsOn (output) settings (
-  	libraryDependencies += specs2,
-    libraryDependencies += akka.testkit
-  )
+  /* agent modules */
   lazy val agent_akka = module("agent-akka", BuildSettings.aspectjCompileSettings) dependsOn (agent, output, test % "test") settings (
   	libraryDependencies += aspectj_weaver,
   	libraryDependencies += akka.actor,
@@ -74,11 +77,28 @@ object MonitorBuild extends Build {
     javaOptions in Test += "-javaagent:" + System.getProperty("user.home") + s"/.ivy2/cache/org.aspectj/aspectjweaver/jars/aspectjweaver-$aspectj_version.jar",
     fork in Test := true
   )
+  lazy val agent_play  = module("agent-play"/*, play.Project.playScalaSettings*/) dependsOn(agent, output, test % "test", play_test_app_1 % "test") settings (
+    libraryDependencies += aspectj_weaver,
+    libraryDependencies += playd.core,
+    libraryDependencies += playd.bootstrap,
+    libraryDependencies += fest_test,
+    libraryDependencies += play_test,
+    javaOptions in Test += "-javaagent:" + System.getProperty("user.home") + s"/.ivy2/cache/org.aspectj/aspectjweaver/jars/aspectjweaver-$aspectj_version.jar",
+    fork in Test := true
+  )
   lazy val agent_spray = module("agent-spray") dependsOn(agent, output)
-  lazy val agent_play  = module("agent-play")  dependsOn(agent, output)
+  /* example apps */
+  lazy val play_test_app_1 = play.Project("playTestApp1", "1.0",
+    Seq(playd.core, playd.bootstrap),
+    file("agent-play/src/test/scala/org/eigengo/monitor/agent/play/testApp1"),
+    play.Project.playScalaSettings)
 
   lazy val example_akka = module("example-akka") dependsOn(agent_akka, output_statsd) settings (
     libraryDependencies += akka.actor
+  )
+  lazy val example_play = module("example-play", play.Project.playScalaSettings) dependsOn(agent_play, output_statsd) settings (
+    libraryDependencies += playd.core,
+    libraryDependencies += playd.bootstrap
   )
   lazy val example_spray = module("example-spray") dependsOn(agent_spray, output_statsd) settings (
     libraryDependencies += spray.can,
