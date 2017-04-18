@@ -1,4 +1,4 @@
-#Monitoring of stuff [![Build Status](https://travis-ci.org/eigengo/monitor.png?branch=master)](https://travis-ci.org/eigengo/monitor)
+# Monitoring of stuff [![Build Status](https://travis-ci.org/eigengo/monitor.png?branch=master)](https://travis-ci.org/eigengo/monitor)
 
 Include one ``*-agent``, create ``/META-INF/aop.xml`` that liststs the aspects to be weaved in. Include
 one of the ``*-output`` dependencies so that the aspects know how to send the metrics out.
@@ -6,12 +6,12 @@ one of the ``*-output`` dependencies so that the aspects know how to send the me
 No Maven dependecies between the agent and ouput. We may have ``output-api`` module, which defines some classes 
 or interfaces that all output modules must implement. The agents and the outputs depend on the api.
 
-##Example project
+## Example project
 
-###Dependencies
+### Dependencies
 Add ``org.eigengo.monitor:akka-agent:0.1``, ``org.eigengo.monitor:statsd-output:0.1``. 
 
-###Configuration
+### Configuration
 In your project (not the monitor), create:
 
 ```
@@ -22,6 +22,6 @@ In your project (not the monitor), create:
 
 Know the class name that will be used as output.
 
-#Monitoring other stuff
+# Monitoring other stuff
 In Play, use ``org.eigengo.monitor:play-agent:0.1`` with the desired output module.
 
